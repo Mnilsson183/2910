@@ -18,7 +18,7 @@ $(BUILD_DIR)/db.o: $(SRC_DIR)/db.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(SRC_DIR)/db.c -c -o $(BUILD_DIR)/db.o
 
 $(BUILD_DIR)/table.o: $(SRC_DIR)/table.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(SRC_DIR)/table.c -c -o $(BUIDL_DIR)/table.o
+	$(CC) $(CFLAGS) $(SRC_DIR)/table.c -c -o $(BUILD_DIR)/table.o
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
