@@ -36,6 +36,10 @@ int parseDataIntoTable(Table* table, const char* filename) {
     for (int i = 0; i < MAX_FILE_LENGTH; i++) {
         // rewrite as a block
         lines[i] = malloc(sizeof(char) * MAX_FILE_LINE_LENGTH);
+        if (lines[i] == NULL) {
+            printf("malloc error\n");
+            return 1;
+        }
     }
 
     unsigned int lineCount = 0;
@@ -52,19 +56,25 @@ int parseDataIntoTable(Table* table, const char* filename) {
     }
 
     // find needed size and copy to tmp buffer
+    // ========================================================
+    //  !!!!!!!!data is not being aligned to the schema!!!!!!!!
+    // ========================================================
     char* s = NULL;
     char* tmpBufferPtr = tmpBuffer;
     int neededSpaceCount = 0;
     for (unsigned int i = 0; i < lineCount; i++) {
         s = lines[i];
         while(*s != '\0') {
+            //printf("%c", *s);
             if (*s != ';') {
                 neededSpaceCount++;
                 *tmpBufferPtr = *s;
+                ++tmpBuffer;
             }
             s++;
         }
     }
+    printf("%s\n", tmpBuffer);
 
     // get a correctly sized area
     table->memory = malloc(neededSpaceCount * sizeof(char));
@@ -82,6 +92,8 @@ int parseDataIntoTable(Table* table, const char* filename) {
 
     table->memory[neededSpaceCount] = '\0';
 
+    printf("%s\n", table->memory);
+
     for (int i = 0; i < MAX_FILE_LENGTH; i++) {
         free(lines[i]);
     }
@@ -97,23 +109,26 @@ void printTable(Table* table) {
 
     char buf[128];
 
-    unsigned int row = 0;
     char *s = table->memory;
     while(*s != '\0') {
+        int index = 0;
+        int flatIndex = index % table->numberOfColumns;
 
-        for (unsigned int i = 0; i < table->numberOfColumns; i++) {
-            if (table->typeTable[i] == 's') {
-                printf("not implimented");
-                return;
-            } else if (table->typeTable[i] == 'u') {
-                printf("not implimented");
-                return;
-            } else if (table->typeTable[i] == 'i') {
-                printf("not implimented");
-                return;
-            }
+        int diff = table->memoryTable[flatIndex + 1] - table->memoryTable[flatIndex];
+
+        memcpy(buf, s, diff);
+        buf[diff + 1] = '\0';
+
+        char type = table->typeTable[flatIndex];
+        if (type == 's') {
+            printf("%s ", buf);
+        } else if (type == 'u') {
+            printf("%d ", atoi(buf));
+        } else if (type == 'i') {
+            printf("%d ", atoi(buf));
         }
-        printf("\n");
-        row++;
+
+        index++;
+        s += diff;
     }
 }
