@@ -45,54 +45,43 @@ int parseDataIntoTable(Table* table, const char* filename) {
     unsigned int lineCount = 0;
     helperGetLines(&lineCount, filename, lines);
 
-    // get a large temperary buffer
-    char* tmpBuffer = malloc(MAX_FILE_LENGTH * MAX_FILE_LINE_LENGTH * sizeof(char));
-    if (tmpBuffer == NULL) {
-        printf("malloc error parsing data to tables");
-        for (int i = 0; i < MAX_FILE_LENGTH; i++) {
-            free(lines[i]);
-        }
-        return 1;
-    }
+    table->numberOfRows = lineCount;
 
-    // find needed size and copy to tmp buffer
-    // ========================================================
-    //  !!!!!!!!data is not being aligned to the schema!!!!!!!!
-    // ========================================================
-    char* s = NULL;
-    char* tmpBufferPtr = tmpBuffer;
-    int neededSpaceCount = 0;
-    for (unsigned int i = 0; i < lineCount; i++) {
-        s = lines[i];
-        while(*s != '\0') {
-            //printf("%c", *s);
-            if (*s != ';') {
-                neededSpaceCount++;
-                *tmpBufferPtr = *s;
-                ++tmpBuffer;
-            }
-            s++;
-        }
-    }
-    printf("%s\n", tmpBuffer);
+    int neededSpaceCount = lineCount * table->memoryTableSize;
 
-    // get a correctly sized area
-    table->memory = malloc(neededSpaceCount * sizeof(char));
+    table->memory = malloc(neededSpaceCount + 1);
     if (table->memory == NULL) {
-        printf("malloc error parsing data to tables");
         for (int i = 0; i < MAX_FILE_LENGTH; i++) {
             free(lines[i]);
         }
-        free(tmpBuffer);
-        return 1;
+            printf("malloc error\n");
+            return 1;
     }
 
-    // copy tmp buffer to correctly sized memory
-    memcpy(table->memory, tmpBuffer, neededSpaceCount);
+    char buf[128];
 
-    table->memory[neededSpaceCount] = '\0';
+    for (unsigned int row = 0; row < lineCount; row++) {
 
-    printf("%s\n", table->memory);
+        char *s = lines[row];
+
+        for (unsigned int column = 0; column < table->numberOfColumns; column++) {
+
+            int bufSize = 0;
+            int offset = table->memoryTable[column] + row * table->memoryTableSize;
+
+            while(*s != '\0' && *s != ';') {
+
+                buf[bufSize] = *s;
+                ++bufSize;
+                ++s;
+            }
+            ++s;
+
+            memcpy(&table->memory[offset], buf, bufSize);
+        }
+    }
+
+    table->memory[neededSpaceCount + 1] = '\0';
 
     for (int i = 0; i < MAX_FILE_LENGTH; i++) {
         free(lines[i]);
@@ -107,28 +96,13 @@ void printTable(Table* table) {
     }
     printf("\n");
 
-    char buf[128];
+    for (unsigned int i = 0; i < table->numberOfRows; i++) {
 
-    char *s = table->memory;
-    while(*s != '\0') {
-        int index = 0;
-        int flatIndex = index % table->numberOfColumns;
+        for (unsigned int j = 0; j < table->numberOfColumns; j++) {
 
-        int diff = table->memoryTable[flatIndex + 1] - table->memoryTable[flatIndex];
-
-        memcpy(buf, s, diff);
-        buf[diff + 1] = '\0';
-
-        char type = table->typeTable[flatIndex];
-        if (type == 's') {
-            printf("%s ", buf);
-        } else if (type == 'u') {
-            printf("%d ", atoi(buf));
-        } else if (type == 'i') {
-            printf("%d ", atoi(buf));
+            int offset = table->memoryTable[j] + i * table->memoryTableSize;
+            printf("%s ", &table->memory[offset]);
         }
-
-        index++;
-        s += diff;
+        printf("\n");
     }
 }

@@ -22,6 +22,7 @@ struct DBQueryResponse {
     char typeTable[MAX_TABLE_COLUMNS];                          // s for string i for int u for usign int
     char columns[MAX_TABLE_COLUMN_NAME_SIZE + 1][MAX_RESPONSE_COLUMNS];
     unsigned int numberOfColumns;
+    unsigned int numberOfRows;
 };
 
 enum COMMANDS {

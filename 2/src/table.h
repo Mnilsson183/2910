@@ -13,15 +13,8 @@ typedef struct {
     char typeTable[MAX_TABLE_COLUMNS];                                  // s for string i for int u for usign int
     char columnNames[MAX_TABLE_COLUMN_NAME_SIZE + 1][MAX_TABLE_COLUMNS];
     unsigned int numberOfColumns;
+    unsigned int numberOfRows;
 } Table;
-
-struct TableEntry {
-    char* memory;
-    unsigned int memoryTable[MAX_TABLE_COLUMNS];
-    char typeTable[MAX_TABLE_COLUMNS];                                  // s for string i for int u for usign int
-    char columnNames[MAX_TABLE_COLUMN_NAME_SIZE + 1][MAX_TABLE_COLUMNS];
-    unsigned int numberOfColumns;
-};
 
 Table* buildTable(Table* table, char name[MAX_TABLE_NAME_SIZE + 1], char typeTable[MAX_TABLE_COLUMNS], unsigned int memoryTable[MAX_TABLE_COLUMNS], char columns[MAX_TABLE_COLUMN_NAME_SIZE + 1][MAX_TABLE_COLUMNS], int numberOfColumns);
 
