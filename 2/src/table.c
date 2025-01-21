@@ -7,17 +7,17 @@
 
 Table* buildTable(Table* table, char name[MAX_TABLE_NAME_SIZE + 1], char typeTable[MAX_TABLE_COLUMNS], unsigned int memoryTable[MAX_TABLE_COLUMNS], char columns[MAX_TABLE_COLUMN_NAME_SIZE + 1][MAX_TABLE_COLUMNS], int numberOfColumns) {
     // write the table name
-    memcpy((void *)table->name, name, MAX_TABLE_NAME_SIZE + 1);
+    memcpy((void *)table->name, name, (MAX_TABLE_NAME_SIZE + 1) * sizeof(char));
 
     // number of filled columns
     table->numberOfColumns = numberOfColumns;
 
     // the given types of the data
-    memcpy((void *)table->typeTable, typeTable, MAX_TABLE_COLUMNS);
+    memcpy((void *)table->typeTable, typeTable, MAX_TABLE_COLUMNS * sizeof(unsigned int));
 
     // write column names
     for (int i = 0; i < numberOfColumns; i++) {
-        memcpy(table->columnNames[i], columns[i], MAX_TABLE_COLUMN_NAME_SIZE + 1);
+        memcpy(table->columnNames[i], columns[i], (MAX_TABLE_COLUMN_NAME_SIZE + 1) * sizeof(unsigned int));
     }
 
     int prev = 0;
@@ -47,9 +47,7 @@ int parseDataIntoTable(Table* table, const char* filename) {
 
     table->numberOfRows = lineCount;
 
-    int neededSpaceCount = lineCount * table->memoryTableSize;
-
-    table->memory = malloc(neededSpaceCount + 1);
+    table->memory = malloc(table->numberOfRows * table->numberOfColumns+ 1);
     if (table->memory == NULL) {
         for (int i = 0; i < MAX_FILE_LENGTH; i++) {
             free(lines[i]);
@@ -69,7 +67,7 @@ int parseDataIntoTable(Table* table, const char* filename) {
             int bufSize = 0;
             int offset = table->memoryTable[column] + row * table->memoryTableSize;
 
-            while(*s != '\0' && *s != ';') {
+            while(*s != '\0' && *s != ';' && *s != '\n') {
 
                 buf[bufSize] = *s;
                 ++bufSize;
@@ -77,11 +75,12 @@ int parseDataIntoTable(Table* table, const char* filename) {
             }
             ++s;
 
-            memcpy(&table->memory[offset], buf, bufSize);
+            memcpy(&table->memory[offset], buf, bufSize * sizeof(char));
+            table->memory[offset + bufSize + 1] = '\0';
         }
     }
 
-    table->memory[neededSpaceCount + 1] = '\0';
+    table->memory[table->numberOfColumns * table->numberOfRows] = '\0';
 
     for (int i = 0; i < MAX_FILE_LENGTH; i++) {
         free(lines[i]);

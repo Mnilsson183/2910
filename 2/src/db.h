@@ -9,6 +9,7 @@
 #define TABLE_INT_SIZE 32
 #define DB_DEFAULT_TABLE_MAX 3
 #define MAX_RESPONSE_COLUMNS 16
+#define MAX_CMD_LEN
 
 struct DB {
     Table* tables[DB_DEFAULT_TABLE_MAX];
@@ -16,20 +17,13 @@ struct DB {
 };
 
 struct DBQueryResponse {
-    char* memory;
-    unsigned int memoryTable[MAX_RESPONSE_COLUMNS];
-    unsigned int memoryTableSize;
-    char typeTable[MAX_TABLE_COLUMNS];                          // s for string i for int u for usign int
-    char columns[MAX_TABLE_COLUMN_NAME_SIZE + 1][MAX_RESPONSE_COLUMNS];
     unsigned int numberOfColumns;
     unsigned int numberOfRows;
-};
-
-enum COMMANDS {
-    SELECT,
-    FROM,
-    SORTED,
-    UNKNOWN,
+    unsigned int memoryTableSize;
+    char* memory;
+    unsigned int memoryTable[MAX_RESPONSE_COLUMNS];
+    char typeTable[MAX_TABLE_COLUMNS];                          // s for string i for int u for usign int
+    char columns[MAX_TABLE_COLUMN_NAME_SIZE + 1][MAX_RESPONSE_COLUMNS];
 };
 
 struct DB* buildDB(struct DB* dataBase, const char* studentFilename, const char* courseFilename, const char* gradeFilename);

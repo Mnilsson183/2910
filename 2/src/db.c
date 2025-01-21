@@ -4,6 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
+struct DBQueryResponse* fromColumnMalloc(struct DB* database, char *tablename);
+struct DBQueryResponse* selectInstructionFreeRemalloc(struct DBQueryResponse* src, char *column);
+struct DBQueryResponse* sortedByInstructionFreeRemalloc(struct DBQueryResponse* src, char *column);
+struct DBQueryResponse* whereEqualsFreeRemalloc(struct DBQueryResponse* src, char* column, char* value);
+struct DBQueryResponse* toAddFreeRemalloc(struct DBQueryResponse* src, char* values, char* column);
+struct DBQueryResponse* updateToFreeRemalloc(struct DBQueryResponse* src, char* column, char* updatedValue);
+struct DBQueryResponse* searchForFreeRemalloc(struct DBQueryResponse* src, char* column, char* value);
+struct DBQueryResponse* averageElements(struct DBQueryResponse* src, char* column);
+
 void helperParseStringToSep(char *dest, char** src) {
     while((*src)[0] != ';' && (*src)[0] != '\0') {
         *dest = (*src)[0];
@@ -51,7 +62,7 @@ struct DB* buildDB(struct DB* dataBase, const char* studentFilename, const char*
     if (error != 0) {
         printf("perseDataToTable error: %d\n", error);
         return NULL;
-    }
+}
 
     dataBase->tables[0] = studentTable;
 
@@ -102,12 +113,42 @@ struct DB* buildDB(struct DB* dataBase, const char* studentFilename, const char*
 
     dataBase->tableCount = 3;
 
-
-    for (unsigned int i = 0; i < dataBase->tableCount; i++) {
-        printTable(dataBase->tables[i]);
-    }
-
     return dataBase;
+}
+
+void fullPrintDBResponse(struct DBQueryResponse* response) {
+    printf("Number of Columns: %d\n", response->numberOfColumns);
+    printf("Number of Rows: %d\n", response->numberOfRows);
+    printf("Memory Table Size: %d\n", response->memoryTableSize);
+
+    printf("Memory Table offsets:\n");
+    for (unsigned int i = 0; i < response->numberOfColumns; i++) {
+        printf("%d ", response->memoryTable[i]);
+    }
+    printf("\n");
+
+    printf("Column names:\n");
+    for (unsigned int i = 0; i < response->numberOfColumns; i++) {
+        printf("%s ", response->columns[i]);
+    }
+    printf("\n");
+
+
+    printf("Columns names:\n");
+    for (unsigned int i = 0; i < response->numberOfColumns; i++) {
+        printf("%s ", response->columns[i]);
+    }
+    printf("\n");
+
+    for (unsigned int i = 0; i < response->numberOfRows; i++) {
+
+        for (unsigned int j = 0; j < response->numberOfColumns; j++) {
+
+            int offset = response->memoryTable[j] + i * response->memoryTableSize;
+            printf("%s|", &response->memory[offset]);
+        }
+        printf("\n");
+    }
 }
 
 // 0 = false
@@ -120,10 +161,26 @@ int wordcmpBool(char *s1, char *s2) {
     while(1) {
         if (*s1 == '\0' && *s2 == '\0') return 1;
         if (*s1 == ' ' && *s2 == '\0') return 1;
+        if (*s1 == '\0' && *s2 == ' ') return 1;
         if (*s1 != *s2) return 0;
         ++s1;
         ++s2;
     }
+}
+
+int wordcpy(char* dest, const char* src) {
+    if (dest == NULL) return -1;
+    if (dest == NULL) return -1;
+
+    int written = 0;
+    while(*src != ' ' && *src != '\0') {
+        *dest = *src;
+        ++dest;
+        ++src;
+        ++written;
+    }
+    *dest = '\0';
+    return written;
 }
 
 unsigned long wordlen(char *s) {
@@ -136,110 +193,176 @@ unsigned long wordlen(char *s) {
     return length;
 }
 
-enum COMMANDS identifyInstruction(char * s) {
-    if (wordcmpBool(s, "SELECT") == 1) return SELECT;
-    if (wordcmpBool(s, "FROM") == 1) return FROM;
-    if (wordcmpBool(s, "SORTED") == 1) return SORTED;
-    return UNKNOWN;
-}
-
 void executeInstruction(struct DB* database, char *query) {
-    // pointers to the first letter of each word
-    char* wordPtrs[128];
-    int wordPtrIndex = 0;
+    struct DBQueryResponse* response = NULL;
+    int set = 0;
+    char *q = query;
+    char buf1[128];
+    char buf2[128];
+    printf("query: %s\n", query);
+    while(q != NULL) {
 
-    char* q = query;
-
-    while (*q != '\0') {
-        if (*q == ' ' && q[1] != '\0') {
-            wordPtrs[wordPtrIndex] = q+1;
-            ++wordPtrIndex;
+        if (response == NULL && set == 1) {
+            printf("Empty table\n");
+            return;
         }
-        ++q;
-    }
 
-    // make the index point to the last word
-    --wordPtrIndex;
+        //if (response != NULL) printDBResponse(response);
 
-    char buf[MAX_TABLE_COLUMN_NAME_SIZE + 1];
+        if (wordcmpBool("FROM", q)) {
+            if (response != NULL) {
+                printf("You cannot have two FROM statments in one query\n");
+                return;
+            }
+            // put q to the next word
+            q += 5;
+            int size = wordcpy(buf1, q);
+            response = fromColumnMalloc(database, buf1);
+            q += size + 1;
+            set = 1;
+        } else if (wordcmpBool("SELECT", q)) {
 
-    // this is a query
-    if (identifyInstruction(wordPtrs[wordPtrIndex - 1]) == FROM) {
-        struct DBQueryResponse *response = buildResponseFromTableMalloc(database, wordPtrs[wordPtrIndex]);
-        wordPtrIndex = wordPtrIndex - 2;
+            if (response == NULL) goto selectNotCalled;
 
-        enum COMMANDS command;
+            q += 7;
+            int size = wordcpy(buf1, q);
+            response = selectInstructionFreeRemalloc(response, buf1);
+            printDBResponse(response);
+            return;
 
-        // start from the very last word and work inwards
-        while (wordPtrIndex >= 0) {
-            command = identifyInstruction(wordPtrs[wordPtrIndex]);
+        } else if (wordcmpBool("SORTEDBY", q)) {
 
-            if (command == UNKNOWN) {
+            if (response == NULL) goto selectNotCalled;
 
-                unsigned int wordlength = wordlen(wordPtrs[wordPtrIndex]);
-                memcpy(buf, wordPtrs[wordPtrIndex], wordlength);
-                buf[wordlength + 1] = '\0';
+            q += 8;
+            int size = wordcpy(buf1, q);
 
-            } else if (command == SELECT) {
+            response = sortedByInstructionFreeRemalloc(response, buf1);
+            q += size + 1;
 
-                response = selectInstructionFreeRemalloc(response, buf);
+        } else if (wordcmpBool("WHERE", q)) {
 
-                if (response == NULL) {
+            if (response == NULL) goto selectNotCalled;
 
-                    printf("malformed select statment: %s", buf);
-                    free(response);
-                    return;
-                }
+            q += 6;
+            int size = wordcpy(buf1, q);
+
+            q += size + 1;
+            if (wordcmpBool("EQUALS", q)) {
+                q += 7;
+                size = wordcpy(buf2, q);
+                q += size + 1;
+
+                whereEqualsFreeRemalloc(response, buf1, buf2);
+            } else {
+                printf("Malformed statment: mo matching EQUALS to my WHERE\n    %s\n", query);
+                return;
             }
 
-            --wordPtrIndex;
-            free(response);
-        }
+        } else if (wordcmpBool("TO", q)) {
 
-    } else {
-        printf("not implimented non query\n");
-        return;
+            if (response == NULL) goto selectNotCalled;
+
+            q += 3;
+            int size = wordcpy(buf1, q);
+            q += size + 1;
+
+            if (wordcmpBool("ADD", q)) {
+                q += 4;
+                size = wordcpy(buf2, q);
+                q += size + 1;
+
+                toAddFreeRemalloc(response, buf2, buf1);
+            } else {
+                printf("Malformed statment: mo matching ADD to my TO\n    %s\n", query);
+                return;
+            }
+
+            // add
+        } else if (wordcmpBool("UPDATE", q)) {
+
+            if (response == NULL) goto selectNotCalled;
+
+            q += 7;
+            int size = wordcpy(buf1, q);
+            q += size + 1;
+
+            if (wordcmpBool("TO", q)) {
+                q += 3;
+                size = wordcpy(buf2, q);
+                q += size + 1;
+
+                response = updateToFreeRemalloc(response, buf1, buf2);
+            } else {
+                printf("Malformed statment: mo matching TO to my UPDATE\n    %s\n", query);
+                return;
+            }
+            // to
+        } else if (wordcmpBool("SEARCH", q)) {
+
+            if (response == NULL) goto selectNotCalled;
+
+            q += 7;
+            int size = wordcpy(buf1, q);
+            q += size + 1;
+
+            if (wordcmpBool("FOR", q)) {
+                q += 4;
+                size = wordcpy(buf2, q);
+                q += size + 1;
+
+                response = searchForFreeRemalloc(response, buf1, buf2);
+            } else {
+                printf("Malformed statment: mo matching FOR to my SEARCH\n    %s\n", query);
+                return;
+            }
+
+            // for
+        } else if (wordcmpBool("AVERAGE", q)) {
+
+            if (response == NULL) goto selectNotCalled;
+
+            q += 8;
+            int size = wordcpy(buf1, q);
+
+            response = sortedByInstructionFreeRemalloc(response, buf1);
+            q += size + 1;
+
+        } else {
+            printf("Cannot parse the following %s\n", q);
+            return;
+        }
     }
+
+
+selectNotCalled:
+    printf("FROM instruction was never used what table am I using?\n");
+    return;
 }
 
-void printDBResponse(struct DBQueryResponse* src) {
-    for (unsigned int i = 0; i < src->numberOfColumns; i++) {
-        printf("%s ", src->columns[i]);
+void printDBResponse(struct DBQueryResponse* response) {
+
+
+    for (unsigned int i = 0; i < response->numberOfColumns; i++) {
+        printf("%s ", response->columns[i]);
     }
     printf("\n");
+    printf("\n");
 
-    char buf[128];
+    for (unsigned int i = 0; i < response->numberOfRows; i++) {
 
-    unsigned int row = 0;
-    char *s = src->memory;
-    while(*s != '\0') {
+        for (unsigned int j = 0; j < response->numberOfColumns; j++) {
 
-        for (unsigned int i = 0; i < src->numberOfColumns; i++) {
-            if (src->typeTable[i] == 's') {
-                int indexStart = src->memoryTable[i] + row * src->memoryTableSize;
-                int indexNextStart = i == src->numberOfColumns - 1 
-                    ? src->memoryTable[0] + (row + 1) *src->memoryTableSize 
-                    : src->memoryTable[i + 1] + row * src->memoryTableSize;
-
-                memcpy(buf, &src->memory[indexStart], indexNextStart - indexStart);
-                buf[indexNextStart - indexStart + 1] = '\0';
-                printf("%s ", buf);
-            } else if (src->typeTable[i] == 'u') {
-                printf("not implimented");
-                return;
-            } else if (src->typeTable[i] == 'i') {
-                printf("not implimented");
-                return;
-
-            }
+            int offset = response->memoryTable[j] + i * response->memoryTableSize;
+            printf("%s ", &response->memory[offset]);
         }
         printf("\n");
-        row++;
     }
 }
 
 
-struct DBQueryResponse* buildResponseFromTableMalloc(struct DB* database, char *tablename) {
+
+struct DBQueryResponse* fromColumnMalloc(struct DB* database, char *tablename) {
 
     struct DBQueryResponse* response = malloc(sizeof(struct DBQueryResponse));
     if (response == NULL) {
@@ -248,29 +371,34 @@ struct DBQueryResponse* buildResponseFromTableMalloc(struct DB* database, char *
     }
 
     for (unsigned int i = 0; i < database->tableCount; i++) {
+
         if (strcmp(tablename, database->tables[i]->name) == 0) {
 
             Table* table = database->tables[i];
 
-            int size = strlen(table->memory);
+            response->numberOfColumns = table->numberOfColumns;
+
+            response->numberOfRows = table->numberOfRows;
+
+            response->memoryTableSize = table->memoryTableSize;
+
+            int size = response->numberOfColumns * response->numberOfRows + 1;
             response->memory = malloc(size);
             if (response->memory == NULL) {
                 printf("Error malloc\n");
                 return NULL;
             }
-            strcpy(response->memory, table->memory);
 
-            memcpy(response->memoryTable, table->memoryTable, MAX_RESPONSE_COLUMNS);
+            memcpy(response->memory, table->memory, (response->numberOfRows * response->memoryTableSize) * sizeof(char));
 
-            memcpy(response->typeTable, table->typeTable, MAX_TABLE_COLUMNS);
+            memcpy(response->memoryTable, table->memoryTable, MAX_TABLE_COLUMNS * sizeof(unsigned int));
+
+            memcpy(response->typeTable, table->typeTable, MAX_TABLE_COLUMNS * sizeof(unsigned int));
 
             for (int i = 0; i < MAX_TABLE_COLUMNS; i++) {
                 strcpy(response->columns[i], table->columnNames[i]);
             }
 
-            response->numberOfColumns = table->numberOfColumns;
-
-            printf("Hello\n");
             return response;
 
         } else if (i == database->tableCount - 1) {
@@ -285,9 +413,10 @@ struct DBQueryResponse* buildResponseFromTableMalloc(struct DB* database, char *
 
 struct DBQueryResponse* selectInstructionFreeRemalloc(struct DBQueryResponse* src, char *column) {
 
+    if (column[0] == '*') return src;
     struct DBQueryResponse* response = malloc(sizeof(struct DBQueryResponse));
     if (response == NULL) {
-        printf("malloc erroor building responsetable\n");
+        printf("malloc error building response table\n");
         return NULL;
     }
 
@@ -295,8 +424,8 @@ struct DBQueryResponse* selectInstructionFreeRemalloc(struct DBQueryResponse* sr
         if (strcmp(column, src->columns[i]) == 0) {
 
             // hardcoded tmp values only able to select one colun
-
             response->numberOfColumns = 1;
+            response->numberOfRows = src->numberOfRows;
 
             response->memoryTable[0] = 0;
 
@@ -304,23 +433,20 @@ struct DBQueryResponse* selectInstructionFreeRemalloc(struct DBQueryResponse* sr
 
             strcpy(response->columns[0], src->columns[i]);
 
-            // write memory
-            int index = 0;
-            int memoryIndex = 0;
-
-            int indexDiff = i == src->numberOfColumns - 1
-                ? src->memoryTable[i]
-                : src->memoryTable[i+1] - src->memoryTable[i];
-
-            while(src->memory[index] != '\0') {
-                if (index % src->memoryTableSize == src->memoryTable[i]) {
-                    memcpy(&response->memory[memoryIndex], &src->memory[index], indexDiff);
-                    index += indexDiff;
-                    memoryIndex += indexDiff;
-                }
-                ++index;
+            response->memory = malloc(response->numberOfRows * response->numberOfColumns + 1);
+            if (response->memory == NULL) {
+                printf("Malloc error\n");
+                return NULL;
             }
-            response->memory[indexDiff + 1] = '\0';
+
+            for (unsigned int row = 0; row < src->numberOfRows; row++) {
+
+                int memOffset = src->memoryTable[i] % src->memoryTableSize;
+
+                int chars =  src->memoryTable[(i + 1) % src->numberOfColumns] - src->memoryTable[i];
+
+                memcpy(&src->memory[row * src->memoryTableSize], &src->memory[src->memoryTable[memOffset * row]], chars * sizeof(char));
+            }
 
             free(src->memory);
             free(src);
@@ -334,5 +460,29 @@ struct DBQueryResponse* selectInstructionFreeRemalloc(struct DBQueryResponse* sr
         }
     }
 
+    return NULL;
+}
+
+struct DBQueryResponse* sortedByInstructionFreeRemalloc(struct DBQueryResponse* src, char *column) {
+    return NULL;
+}
+
+struct DBQueryResponse* whereEqualsFreeRemalloc(struct DBQueryResponse* src, char* column, char* value) {
+    return NULL;
+}
+
+struct DBQueryResponse* toAddFreeRemalloc(struct DBQueryResponse* src, char* values, char* column) {
+    return NULL;
+}
+
+struct DBQueryResponse* updateToFreeRemalloc(struct DBQueryResponse* src, char* column, char* updatedValue) {
+    return NULL;
+}
+
+struct DBQueryResponse* searchForFreeRemalloc(struct DBQueryResponse* src, char* column, char* value) {
+    return NULL;
+}
+
+struct DBQueryResponse* averageElements(struct DBQueryResponse* src, char* column) {
     return NULL;
 }
