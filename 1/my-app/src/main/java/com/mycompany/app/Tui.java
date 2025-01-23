@@ -30,15 +30,7 @@ public class Tui {
     private static String promptFor(String prompt) {
         System.out.print(prompt);
         Scanner scanner = new Scanner(System.in);
-        while (true) {
-            String input = scanner.nextLine();
-            if (input.length() > 0) {
-                scanner.close();
-                return input;
-            }
-            System.out.println("Invalid input");
-            System.out.print(prompt);
-        }
+        return scanner.nextLine();
     }
 
     private static Vector<Table> runCommand(String input, Database database) {

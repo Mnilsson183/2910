@@ -535,7 +535,7 @@ public class Database {
             for (int gradeIndex = 0; gradeIndex < grades.size(); gradeIndex++) {
                 Grade grade = grades.get(gradeIndex);
                 if (grade.getGrades().size() <= courseIndex) continue;
-                
+
                 courseGrades.add(grade.getGrades().get(courseIndex));
             }
 
@@ -561,7 +561,7 @@ public class Database {
             }
 
             Vector<String> row = new Vector<>();
-            row.add("");
+            row.add(courseName);
             row.add("");
             if (count == 0) {
                 row.add("na");
