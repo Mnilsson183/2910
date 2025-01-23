@@ -8,7 +8,6 @@ int main(int argc, char** argv) {
     //    printf("Bad amount of args\n");
     //    return 1;
     //}
-    printf("running\n");
     struct DB* database = malloc(sizeof(struct DB));
     if (database == NULL) {
         printf("Error mallocing memory\n");

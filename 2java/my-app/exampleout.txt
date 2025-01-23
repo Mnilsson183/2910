@@ -1,0 +1,233 @@
+java -cp target/my-app-1.0-SNAPSHOT.jar com.mycompany.app.App --example
+Running example output
+===========================
+1) output original list of all students;
+
++ -- + ---------- + --------- + ---------- + ----------------- +
+| ID | First Name | Last Name | Phone      | Email             |
++ -- + ---------- + --------- + ---------- + ----------------- +
+| 1  | Anna       | Smith     | 4376902123 | a_smith@gmail.com |
+| 2  | Jane       | Smith     | 4374567812 | j_smith@gmail.com |
++ -- + ---------- + --------- + ---------- + ----------------- +
+
+2) output list of all students sorted by name (in alphabetic order and vice versa);
+
++ -- + ---------- + --------- + ---------- + ----------------- +
+| ID | First Name | Last Name | Phone      | Email             |
++ -- + ---------- + --------- + ---------- + ----------------- +
+| 1  | Anna       | Smith     | 4376902123 | a_smith@gmail.com |
+| 2  | Jane       | Smith     | 4374567812 | j_smith@gmail.com |
++ -- + ---------- + --------- + ---------- + ----------------- +
+
+
++ -- + ---------- + --------- + ---------- + ----------------- +
+| ID | First Name | Last Name | Phone      | Email             |
++ -- + ---------- + --------- + ---------- + ----------------- +
+| 2  | Jane       | Smith     | 4374567812 | j_smith@gmail.com |
+| 1  | Anna       | Smith     | 4376902123 | a_smith@gmail.com |
++ -- + ---------- + --------- + ---------- + ----------------- +
+
+3) output original list of all courses;
+
++ ------ + -------- + -- +
+| Name   | Semester | ID |
++ ------ + -------- + -- +
+| CS2020 | winter   | 1  |
+| CS2020 | fall     | 2  |
+| CS2040 | fall     | 3  |
+| CS2910 | winter   | 4  |
++ ------ + -------- + -- +
+
+4) output list of all courses for the specific semester (specified by the user);
+Semester = Winter
+
++ ------ + -------- + -- +
+| Name   | Semester | ID |
++ ------ + -------- + -- +
+| CS2020 | winter   | 1  |
+| CS2910 | winter   | 4  |
++ ------ + -------- + -- +
+
+5) output list of all courses for the specific semester sorted by course name (in alphabetic order and vice versa);
+Semester = Winter
+
++ ------ + -------- + -- +
+| Name   | Semester | ID |
++ ------ + -------- + -- +
+| CS2020 | winter   | 1  |
+| CS2910 | winter   | 4  |
++ ------ + -------- + -- +
+
+
++ ------ + -------- + -- +
+| Name   | Semester | ID |
++ ------ + -------- + -- +
+| CS2910 | winter   | 4  |
+| CS2020 | winter   | 1  |
++ ------ + -------- + -- +
+
+6) add new student, add new course, add a grade for the course (user enters student's last name, course code, and grade);
+lastname = jehad, course code = CS2720, grades = 90, 20, na
+
++ -- + ---------- + --------- + ---------- + ----------------- +
+| ID | First Name | Last Name | Phone      | Email             |
++ -- + ---------- + --------- + ---------- + ----------------- +
+| 1  | Anna       | Smith     | 4376902123 | a_smith@gmail.com |
+| 2  | Jane       | Smith     | 4374567812 | j_smith@gmail.com |
+| 3  |            | jehad     |            |                   |
++ -- + ---------- + --------- + ---------- + ----------------- +
+
+
++ ------ + -------- + -- +
+| Name   | Semester | ID |
++ ------ + -------- + -- +
+| CS2020 | winter   | 1  |
+| CS2020 | fall     | 2  |
+| CS2040 | fall     | 3  |
+| CS2910 | winter   | 4  |
+| CS2720 |          | 5  |
++ ------ + -------- + -- +
+
+
++ -- + ---------- + --------- + -------------- +
+| ID | First Name | Last Name | Grades         |
++ -- + ---------- + --------- + -------------- +
+| 1  | Anna       | Smith     | na, 75, na, na |
+| 2  | Jane       | Smith     | na, na, 90, 85 |
+| 3  |            | jehad     | 90, 20, na     |
++ -- + ---------- + --------- + -------------- +
+
+7) update student info (user enters student id);
+id = 1, new student info = Lebron James, phonenumber = 123123123, email = lbj@gmail.com
+
++ -- + ---------- + --------- + ---------- + ----------------- +
+| ID | First Name | Last Name | Phone      | Email             |
++ -- + ---------- + --------- + ---------- + ----------------- +
+| 1  | James      | Lebron    | 123123123  | lbj@gmail.com     |
+| 2  | Jane       | Smith     | 4374567812 | j_smith@gmail.com |
+| 3  |            | jehad     |            |                   |
++ -- + ---------- + --------- + ---------- + ----------------- +
+
+8) search for course by name (successful result: full course info);
+Course name = CS2910
+
++ ------ + -------- + -- +
+| Name   | Semester | ID |
++ ------ + -------- + -- +
+| CS2910 | winter   | 4  |
++ ------ + -------- + -- +
+
+9) search for course by code (successful result: full course info);
+Course code = CS2910
+
++ ------ + -------- + -- +
+| Name   | Semester | ID |
++ ------ + -------- + -- +
+| CS2910 | winter   | 4  |
++ ------ + -------- + -- +
+
+10) search for student info by last name (successful result: full student info);
+Student last name = Smith
+
++ -- + ---------- + --------- + ---------- + ----------------- +
+| ID | First Name | Last Name | Phone      | Email             |
++ -- + ---------- + --------- + ---------- + ----------------- +
+| 2  | Jane       | Smith     | 4374567812 | j_smith@gmail.com |
++ -- + ---------- + --------- + ---------- + ----------------- +
+
+11) search for student info by last phone number (successful result: full student info);
+Student phone number = 4374567812
+
++ -- + ---------- + --------- + ---------- + ----------------- +
+| ID | First Name | Last Name | Phone      | Email             |
++ -- + ---------- + --------- + ---------- + ----------------- +
+| 2  | Jane       | Smith     | 4374567812 | j_smith@gmail.com |
++ -- + ---------- + --------- + ---------- + ----------------- +
+
+12) output list of all courses taken by student (user enters student lastname) and grades;
+Student last name = Smith
+
++ ------ + ----- + --------- +
+| Course | Grade | Last Name |
++ ------ + ----- + --------- +
+| CS2020 | na    | Smith     |
+| CS2020 | 75    | Smith     |
+| CS2040 | na    | Smith     |
+| CS2910 | na    | Smith     |
++ ------ + ----- + --------- +
+
+
++ ------ + ----- + --------- +
+| Course | Grade | Last Name |
++ ------ + ----- + --------- +
+| CS2020 | na    | Smith     |
+| CS2020 | na    | Smith     |
+| CS2040 | 90    | Smith     |
+| CS2910 | 85    | Smith     |
++ ------ + ----- + --------- +
+
+13) output list of all courses taken by student (user enters student last name) and grades;
+Student last name = Smith
+
++ ------ + ----- + --------- +
+| Course | Grade | Last Name |
++ ------ + ----- + --------- +
+| CS2020 | na    | Smith     |
+| CS2020 | 75    | Smith     |
+| CS2040 | na    | Smith     |
+| CS2910 | na    | Smith     |
++ ------ + ----- + --------- +
+
+
++ ------ + ----- + --------- +
+| Course | Grade | Last Name |
++ ------ + ----- + --------- +
+| CS2020 | na    | Smith     |
+| CS2020 | na    | Smith     |
+| CS2040 | 90    | Smith     |
+| CS2910 | 85    | Smith     |
++ ------ + ----- + --------- +
+
+14) calculate average grade for a specific student (user enters student last name);
+Student last name = Smith
+
++ ------ + ----- + --------- + ------- +
+| Course | Grade | Last Name | Average |
++ ------ + ----- + --------- + ------- +
+| CS2020 | na    | Smith     |         |
+| CS2020 | 75    | Smith     |         |
+| CS2040 | na    | Smith     |         |
+| CS2910 | na    | Smith     |         |
+|        |       |           | 75      |
+| CS2020 | na    | Smith     |         |
+| CS2020 | na    | Smith     |         |
+| CS2040 | 90    | Smith     |         |
+| CS2910 | 85    | Smith     |         |
+|        |       |           | 87      |
++ ------ + ----- + --------- + ------- +
+
+15) calculate the average grade for a specific student for a specific term (user enters student's last name and term);
+Student last name = Smith, term = winter
+
++ ------ + ----- + --------- + ------- +
+| Course | Grade | Last Name | Average |
++ ------ + ----- + --------- + ------- +
+| CS2020 | na    | Smith     |         |
+| CS2910 | na    | Smith     |         |
+|        |       |           | na      |
+| CS2020 | na    | Smith     |         |
+| CS2910 | 85    | Smith     |         |
+|        |       |           | 85      |
++ ------ + ----- + --------- + ------- +
+
+16) calculate average grade for specific courses (user enters course name).
+Course name = CS2910
+
++ ------ + ----- + ------- +
+| Course | Grade | Average |
++ ------ + ----- + ------- +
+| CS2910 | na    |         |
+| CS2910 | 85    |         |
+|        |       | 85      |
++ ------ + ----- + ------- +
+

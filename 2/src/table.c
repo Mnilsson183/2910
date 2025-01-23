@@ -13,11 +13,11 @@ Table* buildTable(Table* table, char name[MAX_TABLE_NAME_SIZE + 1], char typeTab
     table->numberOfColumns = numberOfColumns;
 
     // the given types of the data
-    memcpy((void *)table->typeTable, typeTable, MAX_TABLE_COLUMNS * sizeof(unsigned int));
+    memcpy((void *)table->typeTable, typeTable, MAX_TABLE_COLUMNS * sizeof(char));
 
     // write column names
     for (int i = 0; i < numberOfColumns; i++) {
-        memcpy(table->columnNames[i], columns[i], (MAX_TABLE_COLUMN_NAME_SIZE + 1) * sizeof(unsigned int));
+        memcpy(table->columnNames[i], columns[i], (MAX_TABLE_COLUMN_NAME_SIZE + 1) * sizeof(char));
     }
 
     int prev = 0;
@@ -32,9 +32,10 @@ Table* buildTable(Table* table, char name[MAX_TABLE_NAME_SIZE + 1], char typeTab
 
 
 int parseDataIntoTable(Table* table, const char* filename) {
+
+    // setup buffers to read lines into
     char* lines[MAX_FILE_LENGTH];
     for (int i = 0; i < MAX_FILE_LENGTH; i++) {
-        // rewrite as a block
         lines[i] = malloc(sizeof(char) * MAX_FILE_LINE_LENGTH);
         if (lines[i] == NULL) {
             printf("malloc error\n");
@@ -42,12 +43,15 @@ int parseDataIntoTable(Table* table, const char* filename) {
         }
     }
 
+    // read lines
     unsigned int lineCount = 0;
     helperGetLines(&lineCount, filename, lines);
 
     table->numberOfRows = lineCount;
 
-    table->memory = malloc(table->numberOfRows * table->numberOfColumns+ 1);
+    // malloc table memory
+    //table->memory = malloc((table->numberOfRows * table->numberOfColumns + 1) * sizeof(char));
+    table->memory = malloc(table->numberOfRows * table->memoryTableSize * sizeof(char));
     if (table->memory == NULL) {
         for (int i = 0; i < MAX_FILE_LENGTH; i++) {
             free(lines[i]);
@@ -55,9 +59,11 @@ int parseDataIntoTable(Table* table, const char* filename) {
             printf("malloc error\n");
             return 1;
     }
+    memset(table->memory, 0, (table->numberOfRows * table->numberOfColumns) * sizeof(char));
 
     char buf[128];
 
+    // for each line
     for (unsigned int row = 0; row < lineCount; row++) {
 
         char *s = lines[row];
@@ -65,7 +71,6 @@ int parseDataIntoTable(Table* table, const char* filename) {
         for (unsigned int column = 0; column < table->numberOfColumns; column++) {
 
             int bufSize = 0;
-            int offset = table->memoryTable[column] + row * table->memoryTableSize;
 
             while(*s != '\0' && *s != ';' && *s != '\n') {
 
@@ -75,12 +80,13 @@ int parseDataIntoTable(Table* table, const char* filename) {
             }
             ++s;
 
+            int offset = table->memoryTable[column] + row * table->memoryTableSize;
             memcpy(&table->memory[offset], buf, bufSize * sizeof(char));
             table->memory[offset + bufSize + 1] = '\0';
         }
     }
 
-    table->memory[table->numberOfColumns * table->numberOfRows] = '\0';
+    table->memory[table->numberOfRows * table->memoryTableSize + 1] = '\0';
 
     for (int i = 0; i < MAX_FILE_LENGTH; i++) {
         free(lines[i]);

@@ -1,78 +1,126 @@
 1) output original list of all students
 ./build/a.out students.csv courses.csv grades.csv "FROM students SELECT *"
-running
 query: FROM students SELECT *
-id lastname firstname phonenumber email 
 
-1 1 Anfall 4376902123 CS2910h 
-2 Smith Jane 4374567812 j_smith@gmail.com 
++--------------------------------------------------+
+| id  lastname  firstname  phonenumber  email 
++--------------------------------------------------+
+ 1  Smith  Anna  4376902123  a_smith@gmail.com 
+ 2  Smith  Jane  4374567812  j_smith@gmail.com 
++--------------------------------------------------+
 2) output list of all students sorted by name (in alphabetic order and vice versa
 ./build/a.out students.csv courses.csv grades.csv "FROM students SORTEDBY firstname SELECT *"
-running
 query: FROM students SORTEDBY firstname SELECT *
-Empty table
+
++--------------------------------------------------+
+| id  lastname  firstname  phonenumber  email 
++--------------------------------------------------+
+ 1  Smith  Anna  4376902123  a_smith@gmail.com 
+ 2  Smith  Jane  4374567812  j_smith@gmail.com 
++--------------------------------------------------+
 3) output original list of all courses
 ./build/a.out students.csv courses.csv grades.csv "FROM courses SELECT *"
-running
 query: FROM courses SELECT *
-name semester courseid 
 
-CS2020  1 
-CS2020 fall 2 
-CS2040 fall na 
-CS2910h winter 4 
++-----------------------------+
+| name  semester  courseid 
++-----------------------------+
+ CS2020  winter  1 
+ CS2020  fall  2 
+ CS2040  fall  3 
+ CS2910  winter  4 
++-----------------------------+
 4) output list of all courses for the specific semester (specified by the user)
 ./build/a.out students.csv courses.csv grades.csv "FROM courses WHERE semester EQUALS winter SELECT *"
-running
 query: FROM courses WHERE semester EQUALS winter SELECT *
-name semester courseid 
 
-CS2020  1 
-CS2020 fall 2 
-CS2040 fall na 
-CS2910h winter 4 
++-----------------------------+
+| name  semester  courseid 
++-----------------------------+
+ CS2020  winter  1 
+ CS2910  winter  4 
++-----------------------------+
 5) output list of all courses for the specific semester sorted by course name (in alphabetic order and vice versa)
-./build/a.out students.csv courses.csv grades.csv "FROM courses SORTEDBY name WHERE semester EQUALS winter SELECT *"
-running
-query: FROM courses SORTEDBY name WHERE semester EQUALS winter SELECT *
-Empty table
+./build/a.out students.csv courses.csv grades.csv "FROM courses WHERE semester EQUALS winter SORTEDBY name SELECT *"
+query: FROM courses WHERE semester EQUALS winter SORTEDBY name SELECT *
+
++-----------------------------+
+| name  semester  courseid 
++-----------------------------+
+ CS2020  winter  1 
+ CS2910  winter  4 
++-----------------------------+
 6) add new student, add new course, add a grade for the course (user enters students last name, course code, and grade);
-./build/a.out students.csv courses.csv grades.csv "TO students ADD {'6','hamad','jehad','123123123','jehad@hamad.com'}"
-running
-query: TO students ADD {'6','hamad','jehad','123123123','jehad@hamad.com'}
-FROM instruction was never used what table am I using?
+./build/a.out students.csv courses.csv grades.csv "TO students ADD {6,hamad,jehad,123123123,jehad@hamad.com}"
+query: TO students ADD {6,hamad,jehad,123123123,jehad@hamad.com}
+FROM or TO instructions where never used what table am I using?
 7) update student info (user enters student id);
 ./build/a.out students.csv courses.csv grades.csv "FROM students WHERE id EQUALS 2 UPDATE firstname TO 'alex'"
-running
 query: FROM students WHERE id EQUALS 2 UPDATE firstname TO 'alex'
-Empty table
 8) search for course by name (successful result: full course info);
-./build/a.out students.csv courses.csv grades.csv "FROM courses SEARCH name FOR 'cs2910' SELECT *"
-running
-query: FROM courses SEARCH name FOR 'cs2910' SELECT *
-Empty table
+./build/a.out students.csv courses.csv grades.csv "FROM courses SEARCH name FOR CS2020 SELECT *"
+query: FROM courses SEARCH name FOR CS2020 SELECT *
+
++-----------------------------+
+| name  semester  courseid 
++-----------------------------+
+ CS2020  winter  1 
+ CS2020  fall  2 
++-----------------------------+
 9) search for course by code (successful result: full course info);
-./build/a.out students.csv courses.csv grades.csv "FROM courses SEARCH name FOR 'CS2910' SELECT *"
-running
-query: FROM courses SEARCH name FOR 'CS2910' SELECT *
-Empty table
+./build/a.out students.csv courses.csv grades.csv "FROM courses SEARCH name FOR CS2910 SELECT *"
+query: FROM courses SEARCH name FOR CS2910 SELECT *
+
++-----------------------------+
+| name  semester  courseid 
++-----------------------------+
+ CS2910  winter  4 
++-----------------------------+
 10) search for student info by last name (successful result: full student info);
-./build/a.out students.csv courses.csv grades.csv "FROM courses SEARCH lastname FOR 'smith SELECT *"
-running
-query: FROM courses SEARCH lastname FOR 'smith SELECT *
-Empty table
+./build/a.out students.csv courses.csv grades.csv "FROM students SEARCH lastname FOR Smith SELECT *"
+query: FROM students SEARCH lastname FOR Smith SELECT *
+
++--------------------------------------------------+
+| id  lastname  firstname  phonenumber  email 
++--------------------------------------------------+
+ 1  Smith  Anna  4376902123  a_smith@gmail.com 
+ 2  Smith  Jane  4374567812  j_smith@gmail.com 
++--------------------------------------------------+
 11) search for student info by last phone number (successful result full student info);
-./build/a.out students.csv courses.csv grades.csv "FROM students SEARCH phonenumber FOR'*9' SELECT *"
-running
-query: FROM students SEARCH phonenumber FOR'*9' SELECT *
-Malformed statment: mo matching FOR to my SEARCH
-    FROM students SEARCH phonenumber FOR'*9' SELECT *
+./build/a.out students.csv courses.csv grades.csv "FROM students SEARCH phonenumber FOR *2 SELECT *"
+query: FROM students SEARCH phonenumber FOR *2 SELECT *
+
++--------------------------------------------------+
+| id  lastname  firstname  phonenumber  email 
++--------------------------------------------------+
+ 2  Smith  Jane  4374567812  j_smith@gmail.com 
++--------------------------------------------------+
 12) output list of all courses taken by student (user enters student last name) and grades
-13) output list of all courses taken by student (user enters student last name) and grades
-14) calculate average grade for a specific student (user enters student last name)
-./build/a.out students.csv courses.csv grades.csv "FROM grades AVERAGE grades"
-running
-query: FROM grades AVERAGE grades
+./build/a.out students.csv courses.csv grades.csv "FROM courses WHERE lastname EQUALS Smith SELECT *"
+query: FROM courses WHERE lastname EQUALS Smith SELECT *
+Unknown name of column: lastname
 Empty table
+13) output list of all courses taken by student (user enters student last name) and grades
+./build/a.out students.csv courses.csv grades.csv "FROM grades WHERE lastname EQUALS Smith SELECT *"
+query: FROM grades WHERE lastname EQUALS Smith SELECT *
+
++------------------------------------------------+
+| id  lastname  firstname  g1  g2  g3  g4 
++------------------------------------------------+
+ 1  Smith  Anna  na  75  na  na 
+ 2  Smith  Jane  na  na  90  85 
++------------------------------------------------+
+14) calculate average grade for a specific student (user enters student last name)
+./build/a.out students.csv courses.csv grades.csv "FROM grades WHERE lastname EQUALS Smith AVERAGE grades"
+query: FROM grades WHERE lastname EQUALS Smith AVERAGE grades
+Unknown name of column: 'grades'
 15) calculate the average grade for a specific student for a specific term (user enters students last name and term)
+./build/a.out students.csv courses.csv grades.csv "FROM grades WHERE lastname EQUALS Smith WHERE semester EQUALS winter AVERAGE grades"
+query: FROM grades WHERE lastname EQUALS Smith WHERE semester EQUALS winter AVERAGE grades
+Unknown name of column: semester
+Empty table
 16) calculate average grade for specific courses (user enters course name).
+./build/a.out students.csv courses.csv grades.csv "FROM grades WHERE name EQUALS CS2910 AVERAGE grades"
+query: FROM grades WHERE name EQUALS CS2910 AVERAGE grades
+Unknown name of column: name
+Empty table
