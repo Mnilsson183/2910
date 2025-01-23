@@ -33,6 +33,7 @@ public class Tui {
         while (true) {
             String input = scanner.nextLine();
             if (input.length() > 0) {
+                scanner.close();
                 return input;
             }
             System.out.println("Invalid input");
