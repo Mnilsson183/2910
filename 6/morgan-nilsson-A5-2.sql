@@ -142,7 +142,7 @@ SELECT * FROM EMPLOYEE;
 -- k)
 UPDATE DEPARTMENT
 SET Dname = 'CLOSED', Mgr_ssn = 123456789, Mgr_start_date = '2025-10-10'
-WHERE Dname != 'Headquarters';
+WHERE Dname NOT IN ('Headquarters');
 
 SELECT * FROM DEPARTMENT;
 
