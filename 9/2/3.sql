@@ -1,0 +1,5 @@
+CREATE VIEW DEPENDENTS_40 AS
+SELECT D.dependent_name AS dep_name, D.bdate, D.essn
+FROM DEPENDENT D
+JOIN EMPLOYEE E ON D.essn = E.ssn
+WHERE D.bdate < DATE_SUB(CURDATE(), INTERVAL 40 YEAR);
